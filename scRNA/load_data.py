@@ -4,8 +4,8 @@ from collections import defaultdict
 import pandas as pd
 
 def load_data():
-    save_path = '../artifacts/raw.h5ad'
-    data_dir = '../data'
+    save_path = 'artifacts/scRNA/raw.h5ad'
+    data_dir = 'data/scRNA'
 
     if os.path.exists(save_path):
         print("Loading cached raw data...")
@@ -61,7 +61,7 @@ def load_data():
 
 
     # ensure folder exists
-    os.makedirs("../artifacts", exist_ok=True)
+    os.makedirs("artifacts/scRNA", exist_ok=True)
 
     # save
     adata.write(save_path)

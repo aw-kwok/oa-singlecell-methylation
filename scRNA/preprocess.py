@@ -2,7 +2,7 @@ import scanpy as sc
 import os
 
 def preprocess(adata):
-    save_path = "../artifacts/preprocessed.h5ad"
+    save_path = "artifacts/preprocessed.h5ad"
 
     # ✅ Load cached version if exists
     if os.path.exists(save_path):
@@ -45,7 +45,7 @@ def preprocess(adata):
     sc.tl.pca(adata)
 
     # save
-    os.makedirs("../artifacts", exist_ok=True)
+    os.makedirs("artifacts", exist_ok=True)
     adata.write(save_path)
 
     print(f"Saved preprocessed data → {save_path}")

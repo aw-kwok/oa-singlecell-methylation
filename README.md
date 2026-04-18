@@ -37,6 +37,7 @@ This project uses Python and the following core libraries:
 - `seaborn`
 - `igraph`
 - `leidenalg`
+- `ipykernel`
 
 To install dependencies:
 

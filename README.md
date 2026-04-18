@@ -35,6 +35,8 @@ This project uses Python and the following core libraries:
 - `scipy`
 - `matplotlib`
 - `seaborn`
+- `igraph`
+- `leidenalg`
 
 To install dependencies:
 

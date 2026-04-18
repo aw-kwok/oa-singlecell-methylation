@@ -1,0 +1,10 @@
+# data + outputs
+data/
+artifacts/
+
+# venv
+venv/
+
+#python
+__pycache__/
+*.pyc

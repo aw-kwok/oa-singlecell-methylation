@@ -14,19 +14,23 @@ def build_beta_matrix():
     Path(output_path).parent.mkdir(parents=True, exist_ok=True)
 
     df = pd.read_csv(input_path, sep="\t")
+    df = df.set_index("ID_REF")
 
-    beta = pd.DataFrame(index=df["ID_REF"])
+    beta = pd.DataFrame(index=df.index)
 
     for col in df.columns:
-        if "Methylated Signal" in col:
-            sample = col.replace(" Methylated Signal", "")
-            u_col = f"{sample} Unmethylated Signal"
+        if "Unmethylated Signal" in col:
+            sample = col.replace(" Unmethylated Signal", "")
+            m_col = f"{sample} Methylated Signal"
 
-            if u_col in df.columns:
-                M = df[col]
-                U = df[u_col]
+            if m_col in df.columns:
+                U = df[col]
+                M = df[m_col]
+
                 beta[sample] = M / (M + U + 100)
-
+            else:
+                print(f"Skipping {sample} (missing Methylated column)")
+    
     beta.to_csv(output_path)
     print("beta_matrix created:", beta.shape)
 

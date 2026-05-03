@@ -2,7 +2,7 @@ import scanpy as sc
 import os
 
 def preprocess(adata):
-    save_path = "artifacts/preprocessed.h5ad"
+    save_path = "artifacts/scRNA/preprocessed.h5ad"
 
     # ✅ Load cached version if exists
     if os.path.exists(save_path):

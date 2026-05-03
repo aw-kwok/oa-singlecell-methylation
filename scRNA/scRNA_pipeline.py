@@ -9,5 +9,7 @@ def scRNA_pipeline():
 
     print(adata)
 
+    return adata
+
 if __name__ == "__main__":
     scRNA_pipeline()

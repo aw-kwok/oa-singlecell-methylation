@@ -3,7 +3,10 @@ import re
 import os
 from pathlib import Path
 
-def build_beta_matrix(input_path, output_path):
+def build_beta_matrix():
+    input_path = "../data/methylation/GSE73626_non_normalized.txt.gz"
+    output_path = "../artifacts/methylation/beta_matrix.csv"
+
     if os.path.exists(output_path):
         print("beta_matrix exists, skipping")
         return output_path

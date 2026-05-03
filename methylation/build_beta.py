@@ -19,10 +19,10 @@ def parse_sample_titles(matrix_path):
 
 
 def build_beta_matrix():
-    input_path="../data/methylation/GSE73626_non_normalized.txt.gz"
-    matrix_path="../data/methylation/GSE73626_series_matrix.txt.gz"
-    beta_output="../artifacts/methylation/beta_matrix.csv"
-    metadata_output="../artifacts/methylation/sample_metadata.csv"
+    input_path="data/methylation/GSE73626_non_normalized.txt.gz"
+    matrix_path="data/methylation/GSE73626_series_matrix.txt.gz"
+    beta_output="artifacts/methylation/beta_matrix.csv"
+    metadata_output="artifacts/methylation/sample_metadata.csv"
     
     Path(beta_output).parent.mkdir(parents=True, exist_ok=True)
     Path(metadata_output).parent.mkdir(parents=True, exist_ok=True)

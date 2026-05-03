@@ -3,11 +3,11 @@ import os
 
 
 def map_dmgs():
-    dms_path = "../artifacts/methylation/dms.csv"
-    annot_path = "../artifacts/methylation/annotation.csv"
-    output_path = "../artifacts/methylation/dmgs.csv"
+    dms_path = "artifacts/methylation/dms.csv"
+    annot_path = "artifacts/methylation/annotation.csv"
+    output_path = "artifacts/methylation/dmgs.csv"
 
-    os.makedirs("../artifacts/methylation", exist_ok=True)
+    os.makedirs("artifacts/methylation", exist_ok=True)
 
     if os.path.exists(output_path):
         print("dmgs exists, skipping")

@@ -3,8 +3,8 @@ import os
 from pathlib import Path
 
 def build_annotation():
-    input_path = "../data/methylation/humanmethylation450_15017482_v1-2.csv"
-    output_path = "../artifacts/methylation/annotation.csv"
+    input_path = "data/methylation/humanmethylation450_15017482_v1-2.csv"
+    output_path = "artifacts/methylation/annotation.csv"
 
     if os.path.exists(output_path):
         print("annotation exists, skipping")

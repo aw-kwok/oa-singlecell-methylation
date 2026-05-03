@@ -5,9 +5,9 @@ import numpy as np
 
 
 def compute_dms():
-    beta_path = "../artifacts/methylation/beta_matrix.csv"
-    meta_path = "../artifacts/methylation/sample_metadata.csv"
-    output_path = "../artifacts/methylation/dms.csv"
+    beta_path = "artifacts/methylation/beta_matrix.csv"
+    meta_path = "artifacts/methylation/sample_metadata.csv"
+    output_path = "artifacts/methylation/dms.csv"
 
     Path(output_path).parent.mkdir(parents=True, exist_ok=True)
 

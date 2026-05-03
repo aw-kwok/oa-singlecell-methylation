@@ -1,7 +1,7 @@
-from build_beta import build_beta_matrix
-from annotation import build_annotation
-from dms import compute_dms
-from dmgs import map_dmgs
+from methylation.build_beta import build_beta_matrix
+from methylation.annotation import build_annotation
+from methylation.dms import compute_dms
+from methylation.dmgs import map_dmgs
 
 
 def methylation_pipeline():

@@ -1,6 +1,6 @@
-from load_data import load_data
-from preprocess import preprocess
-from cluster import cluster
+from scRNA.load_data import load_data
+from scRNA.preprocess import preprocess
+from scRNA.cluster import cluster
 
 def scRNA_pipeline():
     adata = load_data()

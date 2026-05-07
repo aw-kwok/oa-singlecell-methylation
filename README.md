@@ -1,100 +1,76 @@
-# OA Multi-Modal Analysis
+# OA Multi-Modal Analysis (scRNA-seq + DNA Methylation)
 
 ## Overview
 
-This project analyzes human osteoarthritis (OA) using multiple genomic data modalities, beginning with single-cell RNA sequencing (scRNA-seq) and extending to DNA methylation.
+This repository provides a reproducible pipeline to analyze osteoarthritis (OA) using:
 
-The central goal is to understand how osteoarthritis alters cellular composition and regulatory programs within joint tissues. Rather than treating OA as a binary condition, this project models it as a shift in underlying cell states.
+1. **Single-cell RNA-seq (scRNA-seq)** to resolve disease-associated vs homeostatic cell states (UMAP + Leiden clustering)
+2. **Bulk DNA methylation (Illumina 450k)** to identify differentially methylated sites (DMS) and genes (DMGs)
+3. **Integration** by projecting methylation-derived gene sets onto the scRNA embedding via a per-cell gene score (`dmg_score`)
 
-The workflow proceeds in two stages:
-
-1. **scRNA-seq analysis** to identify distinct cell states and characterize how their proportions change across tissue conditions
-2. **Methylation analysis (planned)** to determine whether epigenetic signals capture the same disease-associated shifts
-
-By integrating these modalities, the project aims to link gene expression changes with upstream regulatory mechanisms.
+The code is organized as lightweight, cache-aware scripts (write to `artifacts/`) plus notebooks for interpretation and score construction.
 
 ---
 
 ## Data
 
-- **scRNA-seq**: GSE152805  
-  Human osteoarthritic cartilage and synovium at single-cell resolution
-
-- **DNA methylation (planned)**: GEO datasets such as GSE63695  
+- **scRNA-seq**: GEO **GSE152805** (cartilage and synovium single-cell expression)
+- **DNA methylation**: GEO **GSE73626** (450k array; used by the methylation pipeline scripts)
 
 ---
 
 ## Project Structure
 
-The repository is organized into raw data, processing pipelines, and analysis outputs:
-
 ```text
 oa-singlecell-methylation/
 
-├── data/                          # raw GEO scRNA-seq data
-│   └── scRNA/
-│       ├── GSM4626763_SY_113.*
-│       ├── GSM4626764_SY_116.*
-│       ├── GSM4626765_SY_118.*
-│       ├── GSM4626766_OA_oLT_113.*
-│       ├── GSM4626767_OA_oLT_116.*
-│       ├── GSM4626768_OA_oLT_118.*
-│       ├── GSM4626769_OA_MT_113.*
-│       ├── GSM4626770_OA_MT_116.*
-│       └── GSM4626771_OA_MT_118.*
+├── main.py                        # end-to-end run: methylation -> scRNA -> DMG overlay
+├── requirements.txt
+├── README.md
 
-├── artifacts/                     # processed outputs
-│   └── scRNA/
-│       ├── raw.h5ad               # merged raw dataset
-│       ├── preprocessed.h5ad      # QC + normalized data
-│       ├── clustered.h5ad         # PCA, UMAP, Leiden clusters
-│       └── oa_scores.csv          # sample-level OA scores
+├── data/
+│   ├── scRNA/                     # raw per-sample matrices (.gz)
+│   │   ├── GSM4626763_SY_113.matrix.mtx.gz
+│   │   ├── GSM4626763_SY_113.barcodes.tsv.gz
+│   │   ├── GSM4626763_SY_113.genes.tsv.gz
+│   │   ├── GSM4626764_SY_116.matrix.mtx.gz
+│   │   ├── GSM4626764_SY_116.barcodes.tsv.gz
+│   │   ├── GSM4626764_SY_116.genes.tsv.gz
+│   │   ├── ...
+│   │   ├── GSM4626771_OA_MT_118.matrix.mtx.gz
+│   │   ├── GSM4626771_OA_MT_118.barcodes.tsv.gz
+│   │   └── GSM4626771_OA_MT_118.genes.tsv.gz
+│   └── methylation/               # raw GSE73626 + 450k manifest
+│       ├── GSE73626_non_normalized.txt.gz
+│       ├── GSE73626_series_matrix.txt.gz
+│       └── humanmethylation450_15017482_v1-2.csv
 
-├── scRNA/                         # scRNA processing pipeline
-│   ├── load_data.py               # load and merge GEO matrices
-│   ├── preprocess.py              # QC, filtering, normalization, PCA
-│   ├── cluster.py                 # neighbors, UMAP, Leiden clustering
-│   └── main.py                    # end-to-end pipeline runner
+├── scRNA/
+│   ├── load_data.py               # read .mtx/.genes/.barcodes per sample, concatenate
+│   ├── preprocess.py              # QC, filtering, normalization, HVGs, PCA
+│   ├── cluster.py                 # neighbors, UMAP, Leiden
+│   ├── integrate.py               # DMG gene-set scoring on UMAP (writes clustered_with_dmgs.h5ad)
+│   └── scRNA_pipeline.py          # script entrypoint for scRNA pipeline
 
-├── notebooks/                     # analysis and interpretation
-│   └── scRNA_analysis.ipynb       # UMAP, marker genes, OA score
+├── methylation/
+│   ├── build_beta.py              # build beta matrix + sample metadata from GSE73626
+│   ├── annotation.py              # parse 450k manifest -> CpG -> gene mapping
+│   ├── dms.py                     # t-test per CpG to call DMS
+│   ├── dmgs.py                    # aggregate DMS -> DMGs
+│   └── methylation_pipeline.py    # script entrypoint for methylation pipeline
 
-├── requirements.txt               # Python dependencies
-└── README.md                      # project documentation
+├── notebooks/
+│   ├── scRNA_analysis.ipynb        # interpretation + OA score (writes artifacts/scRNA/oa_scores.csv)
+│   └── methylation_overlay.ipynb   # visualize methylation overlay on scRNA UMAP
+
+└── artifacts/                      # generated outputs (safe to delete/rebuild)
+    ├── scRNA/
+    └── methylation/
 ```
 
 ---
 
-## Requirements
-
-This project uses Python and the following core libraries:
-
-- `scanpy`
-- `anndata`
-- `pandas`
-- `numpy`
-- `scipy`
-- `matplotlib`
-- `seaborn`
-- `igraph`
-- `leidenalg`
-- `ipykernel`
-
-To install dependencies:
-
-```bash
-pip install -r requirements.txt
-```
-
----
-
-## How to Run
-
-## How to Run
-
-### 1. Setup environment
-
-Create and activate a virtual environment, then install dependencies:
+## Setup
 
 ```bash
 python -m venv venv
@@ -104,84 +80,100 @@ pip install -r requirements.txt
 
 ---
 
-### 2. Prepare data
+## Required Input Files
 
-Place the raw scRNA-seq files (GEO download) in:
+### scRNA-seq inputs
+
+Place the (gzipped) MatrixMarket + manifest files under `data/scRNA/`.
+Each sample must have three files using the exact suffixes shown below:
 
 ```text
 data/scRNA/
+  GSM4626763_SY_113.matrix.mtx.gz
+  GSM4626763_SY_113.barcodes.tsv.gz
+  GSM4626763_SY_113.genes.tsv.gz
+  ...
 ```
 
-The pipeline expects `.mtx`, `.genes.tsv.gz`, and `.barcodes.tsv.gz` files for each sample.
+The loader groups files by the shared sample prefix (e.g., `GSM4626763_SY_113`) and builds one AnnData per sample before concatenation.
+
+### Methylation inputs
+
+The methylation scripts expect the following files:
+
+```text
+data/methylation/
+  GSE73626_non_normalized.txt.gz
+  GSE73626_series_matrix.txt.gz
+  humanmethylation450_15017482_v1-2.csv
+```
 
 ---
 
-### 3. Run the pipeline
+## Running the Pipelines
 
-Execute the full scRNA processing pipeline:
+### Option A: Run the full end-to-end pipeline
+
+From the project root:
 
 ```bash
-python scRNA/main.py
+python main.py
+```
+
+This will:
+
+1. Run methylation processing and write `artifacts/methylation/dmgs.csv`
+2. Run scRNA preprocessing + clustering and write `artifacts/scRNA/clustered.h5ad`
+3. Compute `dmg_score` on the scRNA object and write `artifacts/scRNA/clustered_with_dmgs.h5ad`
+
+### Option B: Run scRNA-only
+
+```bash
+python scRNA/scRNA_pipeline.py
+```
+
+### Option C: Run methylation-only
+
+```bash
+python methylation/methylation_pipeline.py
 ```
 
 ---
 
-### 4. What the pipeline does
+## Notebooks
 
-The pipeline will:
+- `notebooks/scRNA_analysis.ipynb`
+  - visualizes clusters and condition shifts
+  - constructs a sample-level OA score
+  - writes: `artifacts/scRNA/oa_scores.csv`
 
-1. Load raw data (`load_data.py`)
-2. Preprocess and normalize (`preprocess.py`)
-3. Perform clustering (PCA, UMAP, Leiden) (`cluster.py`)
-4. Save outputs to:
-
-```text
-artifacts/scRNA/
-```
-
-including:
-- `raw.h5ad`
-- `preprocessed.h5ad`
-- `clustered.h5ad`
+- `notebooks/methylation_overlay.ipynb`
+  - loads clustered scRNA data and methylation DMGs
+  - visualizes DMG-derived scores (e.g., `dmg_score`) on the UMAP embedding
 
 ---
 
-### 5. Run analysis notebook
+## Outputs (Artifacts)
 
-Open and run:
+### scRNA
 
-```text
-notebooks/scRNA_analysis.ipynb
-```
+- `artifacts/scRNA/raw.h5ad`
+- `artifacts/scRNA/preprocessed.h5ad`
+- `artifacts/scRNA/clustered.h5ad`
+- `artifacts/scRNA/clustered_with_dmgs.h5ad`
+- `artifacts/scRNA/oa_scores.csv` (created by the scRNA notebook)
 
-This notebook:
-- visualizes UMAP clusters
-- performs marker gene analysis
-- computes the OA score
+### Methylation
 
----
-
-### 6. Output
-
-Final results include:
-
-```text
-artifacts/scRNA/oa_scores.csv
-```
-
-which contains sample-level OA scores used for downstream analysis.
+- `artifacts/methylation/beta_matrix.csv`
+- `artifacts/methylation/sample_metadata.csv`
+- `artifacts/methylation/annotation.csv`
+- `artifacts/methylation/dms.csv`
+- `artifacts/methylation/dmgs.csv`
 
 ---
 
-### Notes
+## Notes
 
-- If processed `.h5ad` files already exist, the pipeline will load cached data instead of recomputing.
-- Ensure you are running commands from the project root directory.
-
----
-
-## To Do
-
-Future work will extend this analysis by integrating DNA methylation data to predict the RNA-derived OA score.
-
-This will allow us to test whether epigenetic variation can capture and predict disease-associated shifts in cellular composition.
+- Most steps are cache-aware: if the expected output file exists in `artifacts/`, the step will print a message and skip recomputation.
+- If you change inputs and want a clean rebuild, delete the relevant outputs under `artifacts/`.
